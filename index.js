@@ -1,5 +1,6 @@
 import "dotenv/config";
 import express from "express";
+import mongoose from "mongoose";
 import cors from "cors";
 import session from "express-session";
 
@@ -14,8 +15,6 @@ import CourseRoutes from "./Kambaz/Courses/routes.js";
 import ModulesRoutes from "./Kambaz/Modules/routes.js";
 import AssignmentRoutes from "./Kambaz/Assignments/routes.js";
 import EnrollmentRoutes from "./Kambaz/Enrollments/routes.js";
-
-import db from "./Kambaz/Database/index.js";
 
 const app = express();
 
@@ -41,21 +40,26 @@ if (process.env.SERVER_ENV !== "development") {
     secure: true,
     httpOnly: true,
     maxAge: 24 * 60 * 60 * 1000,
-    domain: "kambaz-node-server-app-w7no.onrender.com",
+    domain: process.env.SERVER_URL,
     partitioned: true,
   };
 }
 
-app.use(session(sessionOptions));
+const CONNECTION_STRING =
+  process.env.DATABASE_CONNECTION_STRING || "mongodb://127.0.0.1:27017/kambaz";
+mongoose.connect(CONNECTION_STRING);
 
+app.use(session(sessionOptions));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-UserRoutes(app, db);
-CourseRoutes(app, db);
-ModulesRoutes(app, db);
-AssignmentRoutes(app, db);
-EnrollmentRoutes(app, db);
+// ✅ Remove db parameter from all routes
+UserRoutes(app);
+CourseRoutes(app);
+ModulesRoutes(app);
+AssignmentRoutes(app);
+EnrollmentRoutes(app);
+
 Lab5(app);
 Hello(app);
 PathParameters(app);
